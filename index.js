@@ -28,6 +28,37 @@ con.connect((err) => {
 app.use('/api/',require("./routes"));
 //use for creating tables
 
+app.post("/login",(req,res)=>{
+  let id = req.body.id;
+  let password = req.body.password;
+  if(id==undefined || password==undefined){
+    console.log({status:"failed",message:"Please provide all the feilds"});
+    res.send({status:"failed",message:"Please provide all the feilds"});
+  }
+  else{
+    let sql =  `select * from user where user_id='${id}'`;
+    con.query(sql,(err,result)=>{
+      if(err) throw err;
+      
+      if(result.length==0){
+        res.send({status:"failed",message:"Invalid ID"});
+      }else{
+        let sql =  `select * from user where user_id = '${id}' and password ='${password}'`;
+        con.query(sql,(err,result)=>{
+          if(err) throw err;
+          if(result.length==0){
+            console.log(result);
+            res.send({status:"failed",message:"Invalid password"});
+          }else{
+            console.log(result[0].role);
+            res.send({status:"success",message:"Login Successful",role:result[0].role});
+        }
+      
+    })
+  }
+    })
+  }
+})
 
 app.get("/createTable", (req, res) => {
   let sql = "Show tables";
@@ -37,6 +68,40 @@ app.get("/createTable", (req, res) => {
     res.json("Table created");
   });
 });
+
+app.get("/showTable/student/", (req, res) => {
+  
+  let sql = "select student.id,student.name,student.dept_name,student.tot_cred,instructor.name as instructor_name from student inner join advisor on student.ID = advisor.s_id inner join instructor on advisor.i_id = instructor.ID;";
+//Running the query
+con.query(sql, (err, result) => {
+if (err) throw err;
+console.log(result);
+res.send(result);
+});
+})
+
+app.get("/showTable/department/", (req, res) => {
+  
+  let sql = "select department.dept_name as department_name,department.building as department_building,department.budget from department;";
+//Running the query
+con.query(sql, (err, result) => {
+if (err) throw err;
+console.log(result);
+res.send(result);
+});
+})
+
+
+app.get("/showTable/teacher/", (req, res) => {
+  
+  let sql = "select instructor.ID as Instructor_Id,instructor.name as instructor_name,instructor.dept_name ,instructor.salary from instructor;";
+//Running the query
+con.query(sql, (err, result) => {
+if (err) throw err;
+console.log(result);
+res.send(result);
+});
+})
 
 //display of table
 app.get("/showTable/:id/", (req, res) => {
